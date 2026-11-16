@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Wallet Coin Catcher</title>
+
+<style>
+body {
+  text-align: center;
+  background: #151525;
+  color: white;
+  font-family: Arial;
+}
+
+canvas {
+  background: #252540;
+  border: 3px solid gold;
+  border-radius: 10px;
+  max-width: 95%;
+}
+
+button {
+  padding: 12px 25px;
+  font-size: 18px;
+  background: gold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>👛 Wallet Coin Catcher</h1>
+
+<h2>🪙 Score: <span id="score">0</span></h2>
+<h2>❤️ Lives: <span id="lives">5</span></h2>
+<h3>⚡ Speed: <span id="speed">Slow</span></h3>
+
+<canvas id="game" width="350" height="450"></canvas>
+
+<br><br>
+<button onclick="start()">START GAME</button>
+
+<h3 id="message">Collect 10 coins to unlock the next page!</h3>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let wallet, coins, score, lives;
+let playing = false;
+let speed = 2;
+let mouseX = 145;
+
+canvas.addEventListener("mousemove", e => {
+  const rect = canvas.getBoundingClientRect();
+
+  mouseX = (e.clientX - rect.left) *
+           (canvas.width / rect.width);
+});
+
+function start() {
+  if (playing) return;
+
+  wallet = {
+    x: 145,
+    y: 390,
+    w: 60,
+    h: 35
+  };
+
+  coins = [];
+  score = 0;
+  lives = 5;
+  speed = 2;
+  mouseX = 145;
+  playing = true;
+
+  document.getElementById("message").innerText =
+    "Collect 10 coins!";
+
+  updateInfo();
+  gameLoop();
+}
+
+function updateInfo() {
+  document.getElementById("score").innerText = score;
+  document.getElementById("lives").innerText = lives;
+
+  document.getElementById("speed").innerText =
+    speed === 2 ? "Slow" :
+    speed < 6 ? "Medium" : "Fast";
+}
+
+function gameLoop() {
+  if (!playing) return;
+
+  ctx.clearRect(0, 0, 350, 450);
+
+  // Wallet follows mouse
+  wallet.x = Math.max(0, Math.min(290, mouseX - 30));
+
+  // Draw wallet
+  ctx.font = "55px Arial";
+  ctx.fillText("👛", wallet.x, wallet.y + 35);
+
+  // Spawn coins
+  if (Math.random() < 0.035) {
+    coins.push({
+      x: Math.random() * 320 + 15,
+      y: -20,
+      r: 10
+    });
+  }
+
+  // Move coins
+  for (let i = coins.length - 1; i >= 0; i--) {
+    let coin = coins[i];
+
+    coin.y += speed;
+
+    // Draw coin
+    ctx.beginPath();
+    ctx.arc(coin.x, coin.y, coin.r, 0, Math.PI * 2);
+    ctx.fillStyle = "gold";
+    ctx.fill();
+
+    ctx.strokeStyle = "orange";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Catch coin
+    if (
+      coin.x > wallet.x &&
+      coin.x < wallet.x + wallet.w &&
+      coin.y + coin.r >= wallet.y &&
+      coin.y - coin.r <= wallet.y + wallet.h
+    ) {
+      coins.splice(i, 1);
+      score++;
+
+      // Increase speed every 5 coins
+      if (score % 5 === 0) {
+        speed += 0.7;
+      }
+
+      updateInfo();
+      continue;
+    }
+
+    // Missed coin
+    if (coin.y > 450) {
+      coins.splice(i, 1);
+
+      lives--;
+      updateInfo();
+
+      if (lives <= 0) {
+        gameOver();
+        return;
+      }
+    }
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+// GAME OVER
+function gameOver() {
+  playing = false;
+
+  if (score >= 10) {
+
+    document.getElementById("message").innerText =
+      "🎉 Congratulations! Going to Page 2...";
+
+    // AUTOMATICALLY GO TO EXISTING PAGE 2
+    setTimeout(() => {
+      window.location.href = "HEHEHEHE.html";
+    }, 1500);
+
+  } else {
+
+    ctx.clearRect(0, 0, 350, 450);
+
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+
+    ctx.font = "32px Arial";
+    ctx.fillText("GAME OVER!", 175, 190);
+
+    ctx.font = "22px Arial";
+    ctx.fillText("Score: " + score, 175, 230);
+
+    ctx.textAlign = "left";
+
+    document.getElementById("message").innerText =
+      "Try again! Collect 10 coins.";
+  }
+}
+</script>
+
+</body>
+</html>
